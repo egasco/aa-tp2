@@ -48,10 +48,13 @@ class gridWorld():
 	def possibleActions(self,state):
 		row,col = state 
 		res=[]
-		if row>0: res.append('up')
-		if row<self.height-1: res.append('down')
-                if col > 0: res.append('left')
-                if col < self.width -1: res.append('right')
+                if self.isTerminal(state):
+                    res.append('stay')
+                else:
+                    if row>0: res.append('up')
+                    if row<self.height-1: res.append('down')
+                    if col > 0: res.append('left')
+                    if col < self.width -1: res.append('right')
                 return res
 		
 		
@@ -183,16 +186,16 @@ if __name__ == "__main__":
 	
 	
 	# Ejemplo de gridWorld  de 2x3 
-	gw =gridWorld(height=4,width=4,goals=[[2,2]],strategy=GreedyStrategy(0.4))
+	gw =gridWorld(height=10,width=10,goals=[[2,2]],strategy=GreedyStrategy(0.4))
 	#gw =gridWorld(height=4,width=4,goals=[[2,2]],strategy=RandomStrategy())
 
 	# Entreno 1K veces
 	for epoch in range(1000):
                 print "Iteracion =",epoch
 		# Ploteo la matrix a los 10,200, y 999 epochs
-		if epoch==10: gw.draw()
-		if epoch==200: gw.draw()
-		if epoch==999: gw.draw()
+		#if epoch==10: gw.draw()
+		#if epoch==200: gw.draw()
+		#if epoch==999: gw.draw()
 
 		# Elijo un state random para empezar
 		start_state = [ random.randint(0,gw.height-1),random.randint(0,gw.width-1)]
@@ -201,5 +204,6 @@ if __name__ == "__main__":
 		gw.learn(start_state)
 		
 		if epoch%1000==0: print  epoch
+        gw.draw()
 	pylab.show()
 
