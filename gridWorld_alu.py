@@ -9,9 +9,11 @@ class SubClassResponsability(Exception):
 
 """ Clase que implementa un gridWorld"""
 class gridWorld():
-	def __init__(self,width=3, height=2,goals=None,positive=100,select_action='random',alpha=0.9,gamma=0.9,strategy=None):
+	def __init__(self,width=3, height=2,goals=None,positive=100,select_action='random',alpha=0.9,gamma=0.9,strategy=None,grid_init=None):
                 if strategy is None:
                     raise Exception("You need to specify an Strategy to chose next move")
+                if grid_init is None:
+                    raise Exception("You need to specify an grid init function")
 
 		"""Seteo los parametros"""
 		self.height=height
@@ -35,7 +37,8 @@ class gridWorld():
 		inicialiazarse explicitamente
 		"""
 		
-		self.Q = [ [ defaultdict(lambda :random.random()) for _ in 
+		#self.Q = [ [ defaultdict(lambda :random.random()) for _ in 
+		self.Q = [ [ defaultdict(grid_init) for _ in 
 		range(self.width)] for _ in range(self.height)]
 		
 		if goals==None:	self.goals=[[0,self.width-1]]
@@ -127,14 +130,15 @@ class gridWorld():
 		fig = pylab.figure(figsize=2*np.array([self.width,self.height]))
 		for i in range(matrix_right.shape[0]):
 			for j in range(matrix_right.shape[1]):
-				if not np.isnan(matrix_stay[i][j]): pylab.text(j-.5, self.height- i-.5,'X')
+				if not np.isnan(matrix_stay[i][j]): 
+                                    pylab.text(j-.5, self.height- i-.5,'X')
 				else:
 					pylab.text(j+0.2-.5, self.height-  i-.5,str(matrix_right[i][j])[0:4]+">")
 					pylab.text(j-0.3-.5, self.height-i-.5,"<"+str(matrix_left[i][j])[0:4])
 
 					pylab.text(j-.5, self.height- i+.1-.5,str(matrix_up[i][j])[0:4])
 					pylab.text(j-.5, self.height- i-.1-.5,str(matrix_down[i][j])[0:4])
-                                if self.isTerminal((j,i)):
+                                if self.isTerminal((i,j)):
                                     pylab.text(j,self.height-i-.5,i,"Goal")
 
 		pylab.xlim(-1,self.width-1)
@@ -178,6 +182,30 @@ class GreedyStrategy(Strategy):
         return (selected_action,reward)
 
 
+class SoftMaxStrategy(Strategy):
+    def __init__(self,tempeture=1.0):
+        if tempeture <= 0:
+                raise Exception("Invalid tempeture value. Tempeture must be greater than 0")
+        self.tempeture = tempeture
+        print self.tempeture
+    def next_move(self,grid_world,possible_actions,state):
+        print possible_actions
+        if len(possible_actions) == 0:
+            selected_action = 'stay'
+        else:
+            rnd = random.random()
+            zq = zip(possible_actions,[ grid_world.Q[state[0]][state[1]][i] for i in possible_actions])
+            eq = np.exp([(i[1]/self.tempeture) for i in zq] )
+            print eq
+            p = eq / eq.sum() 
+            print p
+            selected_index = np.random.choice(range(0,len(p)),p=p)    
+            selected_action = zq[selected_index][0]
+        reward = grid_world.reward(state,selected_action)
+        return (selected_action,reward)
+
+
+
 
 if __name__ == "__main__":
 	
@@ -186,16 +214,18 @@ if __name__ == "__main__":
 	
 	
 	# Ejemplo de gridWorld  de 2x3 
-	gw =gridWorld(height=10,width=10,goals=[[2,2]],strategy=GreedyStrategy(0.4))
-	#gw =gridWorld(height=4,width=4,goals=[[2,2]],strategy=RandomStrategy())
+	#gw =gridWorld(height=5,width=5,goals=[[2,2]],strategy=GreedyStrategy(0.4))
+        #gw =gridWorld(height=4,width=4,goals=[[2,2]],strategy=RandomStrategy(),grid_init=(lambda :random.random()))
+        gw =gridWorld(height=4,width=4,goals=[[2,2]],strategy=SoftMaxStrategy(),grid_init=(lambda :random.random()))
+        #gw =gridWorld(height=4,width=4,goals=[[2,2]],strategy=RandomStrategy(),grid_init=(lambda :0))
 
 	# Entreno 1K veces
 	for epoch in range(1000):
                 print "Iteracion =",epoch
 		# Ploteo la matrix a los 10,200, y 999 epochs
-		#if epoch==10: gw.draw()
-		#if epoch==200: gw.draw()
-		#if epoch==999: gw.draw()
+		if epoch==10: gw.draw()
+		if epoch==200: gw.draw()
+		if epoch==999: gw.draw()
 
 		# Elijo un state random para empezar
 		start_state = [ random.randint(0,gw.height-1),random.randint(0,gw.width-1)]
