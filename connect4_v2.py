@@ -36,6 +36,7 @@ class Connect4:
                 player.reward(1, self.board,self.possible_moves())
                 other_player.reward(-1, self.board,self.possible_moves())
                 player.score(1)
+                self.display_board()
                 break
             if self.board_full(): # tie game
                 player.reward(0.5, self.board,self.possible_moves())
@@ -54,8 +55,9 @@ class Connect4:
             return True 
         #Arma linea horizontal
         init=max(0,new_pos[1]-3)
-        end=min(self.height-4,new_pos[1])
+        end=min(self.width-4,new_pos[1])
         for i in range(init,end+1):
+            #print([item for item in self.board[new_pos[0]][i:i+4]])
             if all([item==color for item in self.board[new_pos[0]][i:i+4]]):
                 #print('Player Wins Horizontal Line!!!')
                 return True
@@ -87,11 +89,13 @@ class Connect4:
 
     def display_board(self):
         #print(self.board)
+        print('')
         for row in range(0,self.height):
             print('|',end='')
             for col in range(0,self.width):
                 print(self.board[self.height-1-row][col],'|',end='')
             print('')
+        print('')
     def possible_moves(self):
         return [(self.occupancy[c],c) for c in range(0,self.width) if self.occupancy[c] < self.height ]
 
@@ -163,7 +167,7 @@ class QLearningPlayer(Player):
         self.last_board = tuple_from_board(board)
         actions = possible_moves
 
-        if random.random() < self.epsilon: # explore!
+        if random.random() < self.epsilon: # explore! 
             self.last_move = random.choice(actions)
             return self.last_move
 
@@ -181,8 +185,8 @@ class QLearningPlayer(Player):
         return actions[i]
 
     def reward(self, value, board,possible_moves):
-        print('board: ',board)
-        print('possible moves: ',possible_moves)
+        #print('board: ',board)
+        #print('possible moves: ',possible_moves)
         if self.last_move:
             self.learn(self.last_board, self.last_move, value, tuple_from_board(board),possible_moves)
 
@@ -202,7 +206,7 @@ p2 = RandomPlayer()
 y1 = list()
 y2 = list()
 for i in xrange(0,200000):
-    t = Connect4(p1, p2,5,4)
+    t = Connect4(p1, p2,7,6)
     t.play_game()
     if i % 500 == 0:
         print('i=',i,' ,P1 ratio = ',p1.total_score / float(500),', P2 ratio = ',p2.total_score / float(500))
