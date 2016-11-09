@@ -224,7 +224,7 @@ plt.ylabel(r'Tasa de Victorias')
 plt.xlabel(r'Cantidad de Juegos')
 
 plt.legend([player1, player2],['player1: ' + p1.breed  ,'player2: ' + p2.breed],loc='lower right')
-plt.savefig('connect4' + '.pdf')
+plt.savefig('../informe/IMGs/connect4' + '.pdf')
 plt.close()
 
 
