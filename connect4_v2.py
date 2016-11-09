@@ -1,6 +1,7 @@
 from __future__ import print_function
 import random
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 def tuple_from_board(board):
     return tuple([val for row in board for val in row])
@@ -34,26 +35,29 @@ class Connect4:
             if self.player_wins(color,new_pos):
                 player.reward(1, self.board,self.possible_moves())
                 other_player.reward(-1, self.board,self.possible_moves())
+                player.score(1)
                 break
             if self.board_full(): # tie game
                 player.reward(0.5, self.board,self.possible_moves())
                 other_player.reward(0.5, self.board,self.possible_moves())
+                player.score(0.5)
+                other_player.score(0.5)
                 break
             other_player.reward(0, self.board,self.possible_moves())
             self.playerX_turn = not self.playerX_turn
 
     def player_wins(self, color,new_pos):
         #Arma fila vertical
-        print('new_pos=',new_pos)
+        #print('new_pos=',new_pos)
         if new_pos[0] >= 3 and all([ self.board[new_pos[0]-i][new_pos[1]]==color for i in range(0,4) ]):
-            print('Player Wins vertical Line!!!')
+            #print('Player Wins vertical Line!!!')
             return True 
         #Arma linea horizontal
         init=max(0,new_pos[1]-3)
         end=min(self.height-4,new_pos[1])
         for i in range(init,end+1):
             if all([item==color for item in self.board[new_pos[0]][i:i+4]]):
-                print('Player Wins Horizontal Line!!!')
+                #print('Player Wins Horizontal Line!!!')
                 return True
         #Arma diagonal pendiente positiva
         dr = new_pos[0] - max(0,new_pos[0]-3)
@@ -62,10 +66,8 @@ class Connect4:
         init=(new_pos[0]-delta,new_pos[1]-delta)
         while init[0]+3 <= self.height-1 and init[1]+3 <= self.width-1 and (init[0] <= new_pos[0] and init[1] <= new_pos[1]): 
             if all([self.board[init[0]+i][init[1]+i]==color for i in range(0,4) ]):
-                print('Player Wins Positive Diagonal Line!!!')
+                #print('Player Wins Positive Diagonal Line!!!')
                 return True
-            print(init[0])
-            print(init[1])
             init= (init[0] + 1,init[1] + 1)
         #Arma diagonal pendiente negativa
         dr = min(self.height-1,new_pos[0]+3)-new_pos[0]
@@ -74,7 +76,7 @@ class Connect4:
         init=(new_pos[0]+delta,new_pos[1]-delta)
         while init[0]-3 >= 0  and init[1]+3 <= self.width-1 and (init[0] >= new_pos[0] and init[1] <= new_pos[1]): 
             if all([self.board[init[0]-i][init[1]+i]==color for i in range(0,4) ]):
-                print('Player Wins Negative Diagonal Line!!!')
+                #print('Player Wins Negative Diagonal Line!!!')
                 return True
             init= (init[0] - 1,init[1] + 1)
 
@@ -100,6 +102,7 @@ class Connect4:
 class Player(object):
     def __init__(self):
         self.breed = "human"
+        self.total_score=0
 
     def start_game(self, color):
         print("\nNew game!")
@@ -115,6 +118,8 @@ class Player(object):
 
     def reward(self, value, board,possible_moves):
         print (self.breed,' rewarded: ',value)
+    def score(self,points):
+        self.total_score += points;
 
     # def available_moves(self, board):
     #     return [i+1 for i in range(0,9) if board[i] == ' ']
@@ -123,6 +128,7 @@ class Player(object):
 class RandomPlayer(Player):
     def __init__(self):
         self.breed = "random"
+        self.total_score=0
 
     def reward(self, value, board,possible_moves):
         pass
@@ -187,11 +193,30 @@ p1 = RandomPlayer()
 # p1 = MinimaxPlayer()
 # p1 = MinimuddledPlayer()
 # p1 = QLearningPlayer()
-p2 = Player()
-
+p2 = RandomPlayer()
+y1 = list()
+y2 = list()
 for i in xrange(0,200000):
     t = Connect4(p1, p2,5,4)
     t.play_game()
+    if i % 500 == 0:
+        print('i=',i,' ,P1 ratio = ',p1.total_score / float(500),', P2 ratio = ',p2.total_score / float(500))
+        y1.append(p1.total_score / float(500))
+        y2.append(p2.total_score / float(500))
+        p1.total_score = 0
+        p2.total_score = 0
+
+print("Creating plot..")
+
+player1, = plt.plot(range(0,200000,500),y1,label='player1: '+ p1.breed)
+player2, = plt.plot(range(0,200000,500),y2,label='player2: '+ p2.breed)
+plt.ylabel(r'Puntaje Promedio')
+plt.xlabel(r'Cantidad de Juegos')
+
+plt.legend([player1, player2],['player1: ' + p1.breed  ,'player2: ' + p2.breed],loc='lower right')
+plt.savefig('connect4' + '.pdf')
+plt.close()
+
 
 # p1 = Player()
 # p2.epsilon = 0
