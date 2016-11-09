@@ -210,7 +210,7 @@ print("Creating plot..")
 
 player1, = plt.plot(range(0,200000,500),y1,label='player1: '+ p1.breed)
 player2, = plt.plot(range(0,200000,500),y2,label='player2: '+ p2.breed)
-plt.ylabel(r'Puntaje Promedio')
+plt.ylabel(r'Tasa de Victorias')
 plt.xlabel(r'Cantidad de Juegos')
 
 plt.legend([player1, player2],['player1: ' + p1.breed  ,'player2: ' + p2.breed],loc='lower right')
