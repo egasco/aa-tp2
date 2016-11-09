@@ -139,60 +139,65 @@ class RandomPlayer(Player):
     def move(self, board,possible_moves):
         return random.choice(possible_moves)
 
-# class QLearningPlayer(Player):
-#     def __init__(self, epsilon=0.2, alpha=0.3, gamma=0.9):
-#         self.breed = "Qlearner"
-#         self.harm_humans = False
-#         self.q = {} # (state, action) keys: Q values
-#         self.epsilon = epsilon # e-greedy chance of random exploration
-#         self.alpha = alpha # learning rate
-#         self.gamma = gamma # discount factor for future rewards
+class QLearningPlayer(Player):
+    def __init__(self, epsilon=0.2, alpha=0.3, gamma=0.9):
+        self.breed = "Qlearner"
+        self.harm_humans = False
+        self.q = {} # (state, action) keys: Q values
+        self.epsilon = epsilon # e-greedy chance of random exploration
+        self.alpha = alpha # learning rate
+        self.gamma = gamma # discount factor for future rewards
+        self.total_score=0
 
-#     def start_game(self, color):
-#         self.last_board = (' ',)*9
-#         self.last_move = None
+    def start_game(self, color):
+        self.last_board = (' ',)*9
+        self.last_move = None
 
-#     def getQ(self, state, action):
-#         # encourage exploration; "optimistic" 1.0 initial values
-#         if self.q.get((state, action)) is None:
-#             self.q[(state, action)] = 1.0
-#         return self.q.get((state, action))
+    def getQ(self, state, action):
+        # encourage exploration; "optimistic" 1.0 initial values
+        if self.q.get((state, action)) is None:
+            self.q[(state, action)] = 1.0
+        return self.q.get((state, action))
 
-#     def move(self, board):
-#         self.last_board = tuple(board)
-#         actions = self.available_moves(board)
+    def move(self, board,possible_moves):
+        self.last_board = tuple_from_board(board)
+        actions = possible_moves
 
-#         if random.random() < self.epsilon: # explore!
-#             self.last_move = random.choice(actions)
-#             return self.last_move
+        if random.random() < self.epsilon: # explore!
+            self.last_move = random.choice(actions)
+            return self.last_move
 
-#         qs = [self.getQ(self.last_board, a) for a in actions]
-#         maxQ = max(qs)
+        qs = [self.getQ(self.last_board, a) for a in actions]
+        maxQ = max(qs)
 
-#         if qs.count(maxQ) > 1:
-#             # more than 1 best option; choose among them randomly
-#             best_options = [i for i in range(len(actions)) if qs[i] == maxQ]
-#             i = random.choice(best_options)
-#         else:
-#             i = qs.index(maxQ)
+        if qs.count(maxQ) > 1:
+            # more than 1 best option; choose among them randomly
+            best_options = [i for i in range(len(actions)) if qs[i] == maxQ]
+            i = random.choice(best_options)
+        else:
+            i = qs.index(maxQ)
 
-#         self.last_move = actions[i]
-#         return actions[i]
+        self.last_move = actions[i]
+        return actions[i]
 
-#     def reward(self, value, board):
-#         if self.last_move:
-#             self.learn(self.last_board, self.last_move, value, tuple(board))
+    def reward(self, value, board,possible_moves):
+        print('board: ',board)
+        print('possible moves: ',possible_moves)
+        if self.last_move:
+            self.learn(self.last_board, self.last_move, value, tuple_from_board(board),possible_moves)
 
-#     def learn(self, state, action, reward, result_state):
-#         prev = self.getQ(state, action)
-#         maxqnew = max([self.getQ(result_state, a) for a in self.available_moves(state)])
-#         self.q[(state, action)] = prev + self.alpha * ((reward + self.gamma*maxqnew) - prev)
+    def learn(self, state, action, reward, result_state,possible_moves):
+        prev = self.getQ(state, action)
+        if len(possible_moves) > 0:
+            maxqnew = max([self.getQ(result_state, a) for a in possible_moves ])
+        else: maxqnew = 0
+        self.q[(state, action)] = prev + self.alpha * ((reward + self.gamma*maxqnew) - prev)
 
 
-p1 = RandomPlayer()
+#p1 = RandomPlayer()
 # p1 = MinimaxPlayer()
 # p1 = MinimuddledPlayer()
-# p1 = QLearningPlayer()
+p1 = QLearningPlayer()
 p2 = RandomPlayer()
 y1 = list()
 y2 = list()
