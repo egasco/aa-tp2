@@ -14,6 +14,7 @@ class Connect4:
         self.width = width
         self.height = height
         self.occupancy = [0]*width
+        self.win_len = 4
 
     def play_game(self):
         self.playerX.start_game('X')
@@ -36,13 +37,13 @@ class Connect4:
                 player.reward(1, self.board,self.possible_moves())
                 other_player.reward(-1, self.board,self.possible_moves())
                 player.score(1)
-                self.display_board()
+                #self.display_board()
                 break
             if self.board_full(): # tie game
                 player.reward(0.5, self.board,self.possible_moves())
                 other_player.reward(0.5, self.board,self.possible_moves())
-                player.score(0.5)
-                other_player.score(0.5)
+                #player.score(0.5)
+                #other_player.score(0.5)
                 break
             other_player.reward(0, self.board,self.possible_moves())
             self.playerX_turn = not self.playerX_turn
@@ -154,13 +155,13 @@ class QLearningPlayer(Player):
         self.total_score=0
 
     def start_game(self, color):
-        self.last_board = (' ',)*9
+        self.last_board = None
         self.last_move = None
 
     def getQ(self, state, action):
         # encourage exploration; "optimistic" 1.0 initial values
         if self.q.get((state, action)) is None:
-            self.q[(state, action)] = 1.0
+            self.q[(state, action)] = 0.0
         return self.q.get((state, action))
 
     def move(self, board,possible_moves):
@@ -201,8 +202,8 @@ class QLearningPlayer(Player):
 #p1 = RandomPlayer()
 # p1 = MinimaxPlayer()
 # p1 = MinimuddledPlayer()
-p1 = QLearningPlayer()
-p2 = RandomPlayer()
+p1 = RandomPlayer()
+p2 = QLearningPlayer()
 y1 = list()
 y2 = list()
 for i in xrange(0,200000):
@@ -227,9 +228,9 @@ plt.savefig('connect4' + '.pdf')
 plt.close()
 
 
-# p1 = Player()
-# p2.epsilon = 0
+p = Player()
+p2.epsilon = 0
 
-# while True:
-#     t = Connect4(p1, p2)
-# t.play_game()
+while True:
+    t = Connect4(p, p2,7,6)
+    t.play_game()
