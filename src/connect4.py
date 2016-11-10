@@ -159,9 +159,12 @@ class QLearningPlayer(Player):
         self.last_move = None
 
     def getQ(self, state, action):
-        # encourage exploration; "optimistic" 1.0 initial values
+        # Initial values considered options:
+        # 1. "optimistic" 1.0 initial values encourage exploration; 
+        # 2. "pesimistic" 0.0 initial values encourage repeating known movements;
+        # 3. random initial values;
         if self.q.get((state, action)) is None:
-            self.q[(state, action)] = 0.0
+            self.q[(state, action)] = 1.0
         return self.q.get((state, action))
 
     def move(self, board,possible_moves):
@@ -199,13 +202,13 @@ class QLearningPlayer(Player):
         self.q[(state, action)] = prev + self.alpha * ((reward + self.gamma*maxqnew) - prev)
 
 
-#p1 = RandomPlayer()
-p1 = QLearningPlayer()
+p1 = RandomPlayer()
+#p1 = QLearningPlayer()
 p2 = QLearningPlayer()
 y1 = list()
 y2 = list()
 for i in xrange(0,200000):
-    t = Connect4(p1, p2,6,7)
+    t = Connect4(p1, p2,4,4)
     t.play_game()
     if i % 500 == 0:
         print('i=',i,' ,P1 ratio = ',p1.total_score / float(500),', P2 ratio = ',p2.total_score / float(500))
@@ -230,5 +233,5 @@ p = Player()
 p2.epsilon = 0
 
 while True:
-    t = Connect4(p, p2,6,7)
+    t = Connect4(p, p2,4,4)
     t.play_game()
