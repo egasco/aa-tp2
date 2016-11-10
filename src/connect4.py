@@ -33,6 +33,11 @@ class Connect4:
             #     break
             self.move(new_pos)
             self.board[new_pos[0]][new_pos[1]] = color
+            if self.player_blocks(color,new_pos):
+                player.reward(0.5, self.board,self.possible_moves())
+                #other_player.reward(-0.5, self.board,self.possible_moves())
+                #self.display_board()
+                break                
             if self.player_wins(color,new_pos):
                 player.reward(1, self.board,self.possible_moves())
                 other_player.reward(-1, self.board,self.possible_moves())
@@ -80,6 +85,42 @@ class Connect4:
         while init[0]-3 >= 0  and init[1]+3 <= self.width-1 and (init[0] >= new_pos[0] and init[1] <= new_pos[1]): 
             if all([self.board[init[0]-i][init[1]+i]==color for i in range(0,4) ]):
                 #print('Player Wins Negative Diagonal Line!!!')
+                return True
+            init= (init[0] - 1,init[1] + 1)
+
+        return False
+
+    def player_blocks(self, color,new_pos):
+        otherPlayerColor = 'O'
+        if color == 'O':
+            otherPlayerColor = 'X'
+        #Bloquea fila vertical
+        #print('new_pos=',new_pos)
+        if new_pos[0] >= 3 and all([ self.board[new_pos[0]-i][new_pos[1]]==otherPlayerColor for i in range(0,4) ]):
+            return True 
+        #Bloquea linea horizontal
+        init=max(0,new_pos[1]-3)
+        end=min(self.width-4,new_pos[1])
+        for i in range(init,end+1):
+            if all([item==otherPlayerColor for item in self.board[new_pos[0]][i:i+4]]):
+                return True
+        #Bloquea diagonal pendiente positiva
+        dr = new_pos[0] - max(0,new_pos[0]-3)
+        dc = new_pos[1] - max(0,new_pos[1]-3)
+        delta = min(dr,dc)
+        init=(new_pos[0]-delta,new_pos[1]-delta)
+        while init[0]+3 <= self.height-1 and init[1]+3 <= self.width-1 and (init[0] <= new_pos[0] and init[1] <= new_pos[1]): 
+            if all([self.board[init[0]+i][init[1]+i]==otherPlayerColor for i in range(0,4) ]):
+                return True
+            init= (init[0] + 1,init[1] + 1)
+
+        #Bloquea diagonal pendiente negativa
+        dr = min(self.height-1,new_pos[0]+3)-new_pos[0]
+        dc = new_pos[1] - max(0,new_pos[1]-3)
+        delta = min(dr,dc)
+        init=(new_pos[0]+delta,new_pos[1]-delta)
+        while init[0]-3 >= 0  and init[1]+3 <= self.width-1 and (init[0] >= new_pos[0] and init[1] <= new_pos[1]): 
+            if all([self.board[init[0]-i][init[1]+i]==otherPlayerColor for i in range(0,4) ]):
                 return True
             init= (init[0] - 1,init[1] + 1)
 
@@ -134,6 +175,7 @@ class RandomPlayer(Player):
     def __init__(self):
         self.breed = "random"
         self.total_score=0
+        self.movements=0
 
     def reward(self, value, board,possible_moves):
         pass
@@ -142,6 +184,7 @@ class RandomPlayer(Player):
         pass
 
     def move(self, board,possible_moves):
+        self.movements+=1
         return random.choice(possible_moves)
 
 class QLearningPlayer(Player):
@@ -153,6 +196,8 @@ class QLearningPlayer(Player):
         self.alpha = alpha # learning rate
         self.gamma = gamma # discount factor for future rewards
         self.total_score=0
+        self.movements=0
+
 
     def start_game(self, color):
         self.last_board = None
@@ -164,7 +209,7 @@ class QLearningPlayer(Player):
         # 2. "pesimistic" 0.0 initial values encourage repeating known movements;
         # 3. random initial values;
         if self.q.get((state, action)) is None:
-            self.q[(state, action)] = 1.0
+            self.q[(state, action)] = 0.0
         return self.q.get((state, action))
 
     def move(self, board,possible_moves):
@@ -185,6 +230,7 @@ class QLearningPlayer(Player):
         else:
             i = qs.index(maxQ)
 
+        self.movements+=1
         self.last_move = actions[i]
         return actions[i]
 
@@ -207,25 +253,44 @@ p1 = RandomPlayer()
 p2 = QLearningPlayer()
 y1 = list()
 y2 = list()
-for i in xrange(0,200000):
+y3 = list()
+y4 = list()
+
+plotRange = 200000
+for i in xrange(0,plotRange):
     t = Connect4(p1, p2,4,4)
     t.play_game()
     if i % 500 == 0:
         print('i=',i,' ,P1 ratio = ',p1.total_score / float(500),', P2 ratio = ',p2.total_score / float(500))
         y1.append(p1.total_score / float(500))
         y2.append(p2.total_score / float(500))
+        y3.append(p1.movements / float(500))
+        y4.append(p2.movements / float(500))
         p1.total_score = 0
         p2.total_score = 0
+        p1.movements = 0
+        p2.movements = 0
 
-print("Creating plot..")
 
-player1, = plt.plot(range(0,200000,500),y1,label='player1: '+ p1.breed)
-player2, = plt.plot(range(0,200000,500),y2,label='player2: '+ p2.breed)
+print("Creating plots..")
+
+player1, = plt.plot(range(0,plotRange,500),y1,label='player1: '+ p1.breed)
+player2, = plt.plot(range(0,plotRange,500),y2,label='player2: '+ p2.breed)
 plt.ylabel(r'Tasa de Victorias')
 plt.xlabel(r'Cantidad de Juegos')
 
 plt.legend([player1, player2],['player1: ' + p1.breed  ,'player2: ' + p2.breed],loc='lower right')
-plt.savefig('../informe/IMGs/connect4' + '.pdf')
+plt.savefig('../informe/IMGs/connect4_victories' + '.pdf')
+plt.close()
+
+
+player1, = plt.plot(range(0,plotRange,500),y3,label='player1: '+ p1.breed)
+player2, = plt.plot(range(0,plotRange,500),y4,label='player2: '+ p2.breed)
+plt.ylabel(r'Tasa de Movimientos Realizados')
+plt.xlabel(r'Cantidad de Juegos')
+
+plt.legend([player1, player2],['player1: ' + p1.breed  ,'player2: ' + p2.breed],loc='lower right')
+plt.savefig('../informe/IMGs/connect4_movements' + '.pdf')
 plt.close()
 
 
