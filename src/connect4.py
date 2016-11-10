@@ -205,7 +205,7 @@ p2 = QLearningPlayer()
 y1 = list()
 y2 = list()
 for i in xrange(0,200000):
-    t = Connect4(p1, p2,4,4)
+    t = Connect4(p1, p2,6,7)
     t.play_game()
     if i % 500 == 0:
         print('i=',i,' ,P1 ratio = ',p1.total_score / float(500),', P2 ratio = ',p2.total_score / float(500))
@@ -230,5 +230,5 @@ p = Player()
 p2.epsilon = 0
 
 while True:
-    t = Connect4(p, p2,4,4)
+    t = Connect4(p, p2,6,7)
     t.play_game()
