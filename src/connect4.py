@@ -27,19 +27,21 @@ class Connect4:
 
         while True: #yolo
             if self.playerX_turn:
-                player, color, other_player = self.playerX, 'X', self.playerO
+                player, color, other_player, other_color = self.playerX, 'X', self.playerO, 'O'
             else:
-                player, color, other_player = self.playerO, 'O', self.playerX
+                player, color, other_player, other_color = self.playerO, 'O', self.playerX, 'X'
             if player.breed == "human":
                 self.display_board()
             new_pos = player.move(self.board,self.possible_moves())
             # if self.board[space-1] != ' ': # illegal move
             #     player.reward(-99, self.board) # score of shame
             #     break
+            self.last_board = self.board
+            self.last_move = new_pos
             self.move(new_pos)
             self.board[new_pos[0]][new_pos[1]] = color
-            #if self.player_blocks(color,new_pos):
-            #    player.reward(0.5, self.board,self.possible_moves())
+            if self.player_blocks(other_color,self.last_move):
+                player.reward(0.5, self.board,self.possible_moves())
                 #other_player.reward(-0.5, self.board,self.possible_moves())
                 #self.display_board()
                 #break                
@@ -101,13 +103,13 @@ class Connect4:
             otherPlayerColor = 'X'
         #Bloquea fila vertical
         #print('new_pos=',new_pos)
-        if new_pos[0] >= 3 and all([ self.board[new_pos[0]-i][new_pos[1]]==otherPlayerColor for i in range(0,4) ]):
+        if new_pos[0] >= 3 and all([ self.last_board[new_pos[0]-i][new_pos[1]]==otherPlayerColor for i in range(0,4) ]):
             return True 
         #Bloquea linea horizontal
         init=max(0,new_pos[1]-3)
         end=min(self.width-4,new_pos[1])
         for i in range(init,end+1):
-            if all([item==otherPlayerColor for item in self.board[new_pos[0]][i:i+4]]):
+            if all([item==otherPlayerColor for item in self.last_board[new_pos[0]][i:i+4]]):
                 return True
         #Bloquea diagonal pendiente positiva
         dr = new_pos[0] - max(0,new_pos[0]-3)
@@ -115,7 +117,7 @@ class Connect4:
         delta = min(dr,dc)
         init=(new_pos[0]-delta,new_pos[1]-delta)
         while init[0]+3 <= self.height-1 and init[1]+3 <= self.width-1 and (init[0] <= new_pos[0] and init[1] <= new_pos[1]): 
-            if all([self.board[init[0]+i][init[1]+i]==otherPlayerColor for i in range(0,4) ]):
+            if all([self.last_board[init[0]+i][init[1]+i]==otherPlayerColor for i in range(0,4) ]):
                 return True
             init= (init[0] + 1,init[1] + 1)
 
@@ -125,7 +127,7 @@ class Connect4:
         delta = min(dr,dc)
         init=(new_pos[0]+delta,new_pos[1]-delta)
         while init[0]-3 >= 0  and init[1]+3 <= self.width-1 and (init[0] >= new_pos[0] and init[1] <= new_pos[1]): 
-            if all([self.board[init[0]-i][init[1]+i]==otherPlayerColor for i in range(0,4) ]):
+            if all([self.last_board[init[0]-i][init[1]+i]==otherPlayerColor for i in range(0,4) ]):
                 return True
             init= (init[0] - 1,init[1] + 1)
 
@@ -309,5 +311,5 @@ p = Player()
 p2.epsilon = 0
 
 while True:
-    t = Connect4(p, p2,4,4)
+    t = Connect4(p, p2,7,6)
     t.play_game()
