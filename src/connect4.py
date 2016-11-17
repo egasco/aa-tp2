@@ -20,6 +20,11 @@ class Connect4:
         self.playerX.start_game('X')
         self.playerO.start_game('O')
         self.playerX_turn = random.choice([True, False])
+        if self.playerX_turn:
+            self.playerX.started += 1
+        else:
+            self.playerO.started += 1
+
         while True: #yolo
             if self.playerX_turn:
                 player, color, other_player = self.playerX, 'X', self.playerO
@@ -33,20 +38,20 @@ class Connect4:
             #     break
             self.move(new_pos)
             self.board[new_pos[0]][new_pos[1]] = color
-            if self.player_blocks(color,new_pos):
-                player.reward(0.5, self.board,self.possible_moves())
+            #if self.player_blocks(color,new_pos):
+            #    player.reward(0.5, self.board,self.possible_moves())
                 #other_player.reward(-0.5, self.board,self.possible_moves())
                 #self.display_board()
-                break                
+                #break                
             if self.player_wins(color,new_pos):
-                player.reward(1, self.board,self.possible_moves())
-                other_player.reward(-1, self.board,self.possible_moves())
+                player.reward(1, self.board,[])
+                other_player.reward(-1, self.board,[])
                 player.score(1)
                 #self.display_board()
                 break
             if self.board_full(): # tie game
-                player.reward(0.5, self.board,self.possible_moves())
-                other_player.reward(0.5, self.board,self.possible_moves())
+                player.reward(0.5, self.board,[])
+                other_player.reward(-0.5, self.board,[])
                 #player.score(0.5)
                 #other_player.score(0.5)
                 break
@@ -149,6 +154,7 @@ class Player(object):
     def __init__(self):
         self.breed = "human"
         self.total_score=0
+        self.started=0
 
     def start_game(self, color):
         print("\nNew game!")
@@ -176,6 +182,7 @@ class RandomPlayer(Player):
         self.breed = "random"
         self.total_score=0
         self.movements=0
+        self.started=0
 
     def reward(self, value, board,possible_moves):
         pass
@@ -197,6 +204,7 @@ class QLearningPlayer(Player):
         self.gamma = gamma # discount factor for future rewards
         self.total_score=0
         self.movements=0
+        self.started=0
 
 
     def start_game(self, color):
@@ -235,7 +243,8 @@ class QLearningPlayer(Player):
         return actions[i]
 
     def reward(self, value, board,possible_moves):
-        #print('board: ',board)
+        #print('board before: ',self.last_board)
+        #print('board after: ',board)
         #print('possible moves: ',possible_moves)
         if self.last_move:
             self.learn(self.last_board, self.last_move, value, tuple_from_board(board),possible_moves)
@@ -258,14 +267,16 @@ y4 = list()
 
 plotRange = 200000
 for i in xrange(0,plotRange):
-    t = Connect4(p1, p2,4,4)
+    t = Connect4(p1, p2,7,6)
     t.play_game()
     if i % 500 == 0:
-        print('i=',i,' ,P1 ratio = ',p1.total_score / float(500),', P2 ratio = ',p2.total_score / float(500))
+        print('i=',i,' ,P1 ratio = ',p1.total_score / float(500),' started: ',p1.started,', P2 ratio = ',p2.total_score / float(500),'started: ',p2.started)
         y1.append(p1.total_score / float(500))
         y2.append(p2.total_score / float(500))
         y3.append(p1.movements / float(500))
         y4.append(p2.movements / float(500))
+        p1.started = 0
+        p2.started = 0
         p1.total_score = 0
         p2.total_score = 0
         p1.movements = 0
