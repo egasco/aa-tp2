@@ -2,6 +2,7 @@ from __future__ import print_function
 import random
 import matplotlib.pyplot as plt
 import numpy as np
+import copy
 
 def tuple_from_board(board):
     return tuple([val for row in board for val in row])
@@ -36,34 +37,34 @@ class Connect4:
             # if self.board[space-1] != ' ': # illegal move
             #     player.reward(-99, self.board) # score of shame
             #     break
-            self.last_board = self.board
-            self.last_move = new_pos
+            
             self.move(new_pos)
             self.board[new_pos[0]][new_pos[1]] = color
-            if self.player_blocks(other_color,self.last_move):
-                player.reward(0.5, self.board,self.possible_moves())
+
+            if self.player_wins(other_color,player.last_move,player.last_board):
+                player.reward(0.5, self.possible_moves(),self.board)
                 #other_player.reward(-0.5, self.board,self.possible_moves())
                 #self.display_board()
                 #break                
-            if self.player_wins(color,new_pos):
-                player.reward(1, self.board,[])
-                other_player.reward(-1, self.board,[])
+            if self.player_wins(color,player.last_move, player.last_board):
+                player.reward(1, [], self.board)
+                other_player.reward(-1, [], self.board)
                 player.score(1)
                 #self.display_board()
                 break
             if self.board_full(): # tie game
-                player.reward(0.5, self.board,[])
-                other_player.reward(-0.5, self.board,[])
+                player.reward(0.5, [], self.board)
+                other_player.reward(-0.5, [], self.board)
                 #player.score(0.5)
                 #other_player.score(0.5)
                 break
-            other_player.reward(0, self.board,self.possible_moves())
+            other_player.reward(0, self.possible_moves(), self.board)
             self.playerX_turn = not self.playerX_turn
 
-    def player_wins(self, color,new_pos):
+    def player_wins(self, color, new_pos, last_board):
         #Arma fila vertical
         #print('new_pos=',new_pos)
-        if new_pos[0] >= 3 and all([ self.board[new_pos[0]-i][new_pos[1]]==color for i in range(0,4) ]):
+        if new_pos[0] >= 3 and all([ last_board[new_pos[0]-i][new_pos[1]]==color for i in range(0,4) ]):
             #print('Player Wins vertical Line!!!')
             return True 
         #Arma linea horizontal
@@ -71,7 +72,7 @@ class Connect4:
         end=min(self.width-4,new_pos[1])
         for i in range(init,end+1):
             #print([item for item in self.board[new_pos[0]][i:i+4]])
-            if all([item==color for item in self.board[new_pos[0]][i:i+4]]):
+            if all([item==color for item in last_board[new_pos[0]][i:i+4]]):
                 #print('Player Wins Horizontal Line!!!')
                 return True
         #Arma diagonal pendiente positiva
@@ -80,7 +81,7 @@ class Connect4:
         delta = min(dr,dc)
         init=(new_pos[0]-delta,new_pos[1]-delta)
         while init[0]+3 <= self.height-1 and init[1]+3 <= self.width-1 and (init[0] <= new_pos[0] and init[1] <= new_pos[1]): 
-            if all([self.board[init[0]+i][init[1]+i]==color for i in range(0,4) ]):
+            if all([last_board[init[0]+i][init[1]+i]==color for i in range(0,4) ]):
                 #print('Player Wins Positive Diagonal Line!!!')
                 return True
             init= (init[0] + 1,init[1] + 1)
@@ -90,44 +91,8 @@ class Connect4:
         delta = min(dr,dc)
         init=(new_pos[0]+delta,new_pos[1]-delta)
         while init[0]-3 >= 0  and init[1]+3 <= self.width-1 and (init[0] >= new_pos[0] and init[1] <= new_pos[1]): 
-            if all([self.board[init[0]-i][init[1]+i]==color for i in range(0,4) ]):
+            if all([last_board[init[0]-i][init[1]+i]==color for i in range(0,4) ]):
                 #print('Player Wins Negative Diagonal Line!!!')
-                return True
-            init= (init[0] - 1,init[1] + 1)
-
-        return False
-
-    def player_blocks(self, color,new_pos):
-        otherPlayerColor = 'O'
-        if color == 'O':
-            otherPlayerColor = 'X'
-        #Bloquea fila vertical
-        #print('new_pos=',new_pos)
-        if new_pos[0] >= 3 and all([ self.last_board[new_pos[0]-i][new_pos[1]]==otherPlayerColor for i in range(0,4) ]):
-            return True 
-        #Bloquea linea horizontal
-        init=max(0,new_pos[1]-3)
-        end=min(self.width-4,new_pos[1])
-        for i in range(init,end+1):
-            if all([item==otherPlayerColor for item in self.last_board[new_pos[0]][i:i+4]]):
-                return True
-        #Bloquea diagonal pendiente positiva
-        dr = new_pos[0] - max(0,new_pos[0]-3)
-        dc = new_pos[1] - max(0,new_pos[1]-3)
-        delta = min(dr,dc)
-        init=(new_pos[0]-delta,new_pos[1]-delta)
-        while init[0]+3 <= self.height-1 and init[1]+3 <= self.width-1 and (init[0] <= new_pos[0] and init[1] <= new_pos[1]): 
-            if all([self.last_board[init[0]+i][init[1]+i]==otherPlayerColor for i in range(0,4) ]):
-                return True
-            init= (init[0] + 1,init[1] + 1)
-
-        #Bloquea diagonal pendiente negativa
-        dr = min(self.height-1,new_pos[0]+3)-new_pos[0]
-        dc = new_pos[1] - max(0,new_pos[1]-3)
-        delta = min(dr,dc)
-        init=(new_pos[0]+delta,new_pos[1]-delta)
-        while init[0]-3 >= 0  and init[1]+3 <= self.width-1 and (init[0] >= new_pos[0] and init[1] <= new_pos[1]): 
-            if all([self.last_board[init[0]-i][init[1]+i]==otherPlayerColor for i in range(0,4) ]):
                 return True
             init= (init[0] - 1,init[1] + 1)
 
@@ -168,9 +133,11 @@ class Player(object):
             print('Select item from move list: ',possible_moves)
             print('Enter value from 0 to ',len(possible_moves)-1,' :',end='')
             my_move = int(raw_input("Your move? "))
-        return possible_moves[my_move]
+        self.last_move = possible_moves[my_move]
+        self.last_board = copy.deepcopy(board)
+        return self.last_move
 
-    def reward(self, value, board,possible_moves):
+    def reward(self, value, possible_moves, board):
         print (self.breed,' rewarded: ',value)
     def score(self,points):
         self.total_score += points;
@@ -185,8 +152,11 @@ class RandomPlayer(Player):
         self.total_score=0
         self.movements=0
         self.started=0
+        self.last_board = None
+        self.last_move = None
 
-    def reward(self, value, board,possible_moves):
+
+    def reward(self, value, possible_moves, board):
         pass
 
     def start_game(self, color):
@@ -194,7 +164,9 @@ class RandomPlayer(Player):
 
     def move(self, board,possible_moves):
         self.movements+=1
-        return random.choice(possible_moves)
+        self.last_move = random.choice(possible_moves)
+        self.last_board = copy.deepcopy(board)
+        return self.last_move
 
 class QLearningPlayer(Player):
     def __init__(self, epsilon=0.2, alpha=0.3, gamma=0.9):
@@ -223,14 +195,13 @@ class QLearningPlayer(Player):
         return self.q.get((state, action))
 
     def move(self, board,possible_moves):
-        self.last_board = tuple_from_board(board)
+        self.last_board = copy.deepcopy(board)
         actions = possible_moves
-
         if random.random() < self.epsilon: # explore! 
             self.last_move = random.choice(actions)
             return self.last_move
 
-        qs = [self.getQ(self.last_board, a) for a in actions]
+        qs = [self.getQ(tuple_from_board(self.last_board), a) for a in actions]
         maxQ = max(qs)
 
         if qs.count(maxQ) > 1:
@@ -244,12 +215,12 @@ class QLearningPlayer(Player):
         self.last_move = actions[i]
         return actions[i]
 
-    def reward(self, value, board,possible_moves):
+    def reward(self, value, possible_moves, board):
         #print('board before: ',self.last_board)
         #print('board after: ',board)
         #print('possible moves: ',possible_moves)
         if self.last_move:
-            self.learn(self.last_board, self.last_move, value, tuple_from_board(board),possible_moves)
+            self.learn(tuple_from_board(self.last_board), self.last_move, value, tuple_from_board(board), possible_moves)
 
     def learn(self, state, action, reward, result_state,possible_moves):
         prev = self.getQ(state, action)
