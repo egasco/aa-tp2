@@ -53,8 +53,8 @@ class Connect4:
 
             # BLOQUEO
 
-            """if self.player_wins(other_color,player.last_move,player.last_board):
-                player.reward(0.5, self.board)"""
+            if self.player_wins(other_color,player.last_move):
+                player.reward(0.5, self.board, True)
                 #other_player.reward(-0.5, self.board,self.possible_moves())
                 #self.display_board()
                 #break                
@@ -62,8 +62,8 @@ class Connect4:
             # GANO
 
             if self.player_wins(color,player.last_move):
-                player.reward(1, self.board)
-                other_player.reward(-1, self.board)
+                player.reward(1, self.board, True)
+                other_player.reward(-1, self.board, False)
                 player.score(1)
                 #self.display_board()
                 break
@@ -71,13 +71,13 @@ class Connect4:
             # TABLERO LLENO
 
             if self.board_full(): # tie game
-                player.reward(0.5, self.board)
-                other_player.reward(-0.5, self.board)
+                player.reward(0.5, self.board, True)
+                other_player.reward(0.5, self.board, False)
                 #player.score(0.5)
                 #other_player.score(0.5)
                 break            
 
-            other_player.reward(0, self.board)
+            other_player.reward(0, self.board, False)
             self.playerX_turn = not self.playerX_turn
 
     def player_wins(self, color, new_pos):
@@ -157,7 +157,7 @@ class Player(object):
         self.last_board = tuple_from_board(board)
         return self.last_move
 
-    def reward(self, value, board):
+    def reward(self, value, board, jugueUltimo):
         print (self.breed,' rewarded: ',value)
     def score(self,points):
         self.total_score += points;
@@ -176,7 +176,7 @@ class RandomPlayer(Player):
         self.last_move = None
 
 
-    def reward(self, value, board):
+    def reward(self, value, board, jugueUltimo):
         pass
 
     def start_game(self, color):
@@ -235,20 +235,34 @@ class QLearningPlayer(Player):
         self.last_move = actions[i]
         return actions[i]
 
-    def reward(self, value, board):
+    def reward(self, value, board, jugueUltimo):
         #print('board before: ',self.last_board)
         #print('board after: ',board)
         #print('possible moves: ',possible_moves)
-        if self.last_move:
-            self.learn(self.last_board, self.last_move, value, tuple_from_board(board))
+        if jugueUltimo:
+            if self.last_move:
+                self.learnYo(self.last_board, self.last_move, value, tuple_from_board(board))
+        else:
+            if self.last_move:
+                self.learnOponente(self.last_board, self.last_move, value, tuple_from_board(board))
 
-    def learn(self, state, action, reward, result_state):
+
+    def learnOponente(self, state, action, reward, result_state):
+        prev = self.getQ(state, action)
+        possible_moves = available_moves(result_state)
+        if len(possible_moves) > 0:
+            maxqnew = max([self.getQ(result_state, a) for a in possible_moves ])
+        else: maxqnew = 0
+        self.q[(state, action)] = prev + self.alpha * ((reward + self.gamma*maxqnew) - prev)
+
+    def learnYo(self, state, action, reward, result_state):
         prev = self.getQ(state, action)
         possible_moves = available_moves(state)
         if len(possible_moves) > 0:
             maxqnew = max([self.getQ(result_state, a) for a in possible_moves ])
         else: maxqnew = 0
         self.q[(state, action)] = prev + self.alpha * ((reward + self.gamma*maxqnew) - prev)
+
 
 
 p1 = RandomPlayer()
