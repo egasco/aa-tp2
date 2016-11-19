@@ -42,22 +42,24 @@ class Connect4:
                 player, color, other_player, other_color = self.playerO, 'O', self.playerX, 'X'
             if player.breed == "human":
                 self.display_board()
-            new_pos = player.move(self.board,self.possible_moves())
-            # if self.board[space-1] != ' ': # illegal move
-            #     player.reward(-99, self.board) # score of shame
-            #     break
+            new_pos = player.move(self.board)
+
+
+            # JUGADA ILEGAL
+
+            if self.board[new_pos[0]][new_pos[1]] != ' ':
+                player.reward(-99, self.board) # score of shame
+                break
             
+            # GUARDO MOVIDA
+
             self.move(new_pos)
             self.board[new_pos[0]][new_pos[1]] = color
-
 
             # BLOQUEO
 
             """if self.player_wins(other_color,player.last_move,player.last_board):
                 player.reward(0.5, self.board)"""
-                #other_player.reward(-0.5, self.board,self.possible_moves())
-                #self.display_board()
-                #break                
 
             # GANO
 
@@ -146,8 +148,9 @@ class Player(object):
     def start_game(self, color):
         print("\nNew game!")
 
-    def move(self, board,possible_moves):
+    def move(self, board):
         print('Your  turn!')
+        possible_moves = available_moves(board)
         my_move = -1;
         while my_move < 0 or my_move > len(possible_moves)-1    :
             print('Select item from move list: ',possible_moves)
@@ -182,9 +185,9 @@ class RandomPlayer(Player):
     def start_game(self, color):
         pass
 
-    def move(self, board,possible_moves):
+    def move(self, board):
         self.movements+=1
-        self.last_move = random.choice(possible_moves)
+        self.last_move = random.choice(available_moves(board))
         self.last_board = tuple_from_board(board)
         return self.last_move
 
@@ -211,12 +214,12 @@ class QLearningPlayer(Player):
         # 2. "pesimistic" 0.0 initial values encourage repeating known movements;
         # 3. random initial values;
         if self.q.get((state, action)) is None:
-            self.q[(state, action)] = 0.0
+            self.q[(state, action)] = 1.0
         return self.q.get((state, action))
 
-    def move(self, board,possible_moves):
+    def move(self, board):
         self.last_board = tuple_from_board(board)
-        actions = possible_moves
+        actions = available_moves(board)
         if random.random() < self.epsilon: # explore! 
             self.last_move = random.choice(actions)
             return self.last_move
