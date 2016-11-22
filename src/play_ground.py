@@ -230,7 +230,7 @@ class Connect4WithBlock(Connect4):
             self.playerX_turn = not self.playerX_turn
 
 class QLearningPlayer(Player):
-    def __init__(self, epsilon=0.2, alpha=0.3, gamma=0.9,q_init=1.0):
+    def __init__(self, epsilon=0.1, alpha=0.3, gamma=0.9,q_init=1.0):
         self.breed = "Qlearner"
         self.harm_humans = False
         self.q = {} # (state, action) keys: Q values
@@ -243,11 +243,12 @@ class QLearningPlayer(Player):
         self.started=0
 
     def desc(self):
-        desc= self.breed + ',epsilon=' + str(self.epsilon)
+        desc= self.breed + ',alpha=' + str(self.alpha)
         return desc
     def start_game(self, color):
         self.last_board = None
         self.last_move = None
+        self.color = color
 
     def getQ(self, state, action):
         # Initial values considered options:
@@ -291,6 +292,42 @@ class QLearningPlayer(Player):
             maxqnew = max([self.getQ(result_state, a) for a in possible_moves ])
         else: maxqnew = 0
         self.q[(state, action)] = prev + self.alpha * ((reward + self.gamma*maxqnew) - prev)
+
+
+def C2BB(cell,color):
+    if cell == color:
+        return '1'
+    elif cell == ' ':
+        return cell
+    else:
+        return '0'
+
+class ColorBlind(QLearningPlayer):
+    def move(self, board):
+        self.last_board = tuple(map(lambda cell: C2BB(cell,color),tuple_from_board(board)))
+        actions = available_moves(board)
+
+        if random.random() < self.epsilon: # explore! 
+            self.last_move = random.choice(actions)
+            return self.last_move
+        qs = [self.getQ(self.last_board, a) for a in actions]
+        maxQ = max(qs)
+
+        if qs.count(maxQ) > 1:
+            # more than 1 best option; choose among them randomly
+            best_options = [i for i in range(len(actions)) if qs[i] == maxQ]
+            i = random.choice(best_options)
+        else:
+            i = qs.index(maxQ)
+
+        self.last_move = actions[i]
+        return actions[i]
+
+    def reward(self, value, board):
+        if self.last_move:
+            possible_moves = available_moves(board)
+            self.learn(self.last_board, self.last_move, value, tuple(map(lambda cell: C2BB(cell,color),tuple_from_board(board))), possible_moves)
+
 
 class SoftMaxPlayer(QLearningPlayer):
     def __init__(self, epsilon=0.2, alpha=0.3, gamma=0.9,q_init=1.0,tempeture=1.0):
@@ -358,8 +395,6 @@ def train(game_factory,cantidad_de_juegos,p1,p2,file_name):
 
 if __name__ == '__main__':
     train_count=200000
-    p1 = QLearningPlayer(q_init=0.0,epsilon=0.1)
-    p2 = RandomPlayer()    
     
     # p1 = QLearningPlayer(q_init=0.0,epsilon=0.1)
     # p2 = RandomPlayer()
@@ -384,48 +419,79 @@ if __name__ == '__main__':
     # #p1 = QLearningPlayer()
     # p2 = QLearningPlayer(q_init=0.0,epsilon=0.2)
 
-    # train(train_count,p1,p2,'Bot_epsilon_10p_vs_Bot_epsilon_20p')
+    # train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Bot_epsilon_10p_vs_Bot_epsilon_20p')
 
     # p1 = QLearningPlayer(q_init=0.0,epsilon=0.1)
     # #p1 = QLearningPlayer()
     # p2 = QLearningPlayer(q_init=0.0,epsilon=0.3)
 
-    # train(train_count,p1,p2,'Bot_epsilon_10p_vs_Bot_epsilon_30p')
+    # train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Bot_epsilon_10p_vs_Bot_epsilon_30p')
 
     # p1 = QLearningPlayer(q_init=0.0,epsilon=0.1)
     # #p1 = QLearningPlayer()
     # p2 = QLearningPlayer(q_init=0.0,epsilon=0.4)
 
-    # train(train_count,p1,p2,'Bot_epsilon_10p_vs_Bot_epsilon_40p')
+    # train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Bot_epsilon_10p_vs_Bot_epsilon_40p')
 
-    # p1 = RandomPlayer()
-    # #p1 = QLearningPlayer()
-    # p2 = QLearningPlayer(q_init=0.0,epsilon=0.1)
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.1)
 
-    # train(train_count,p1,p2,'Random_vs_Bot_epsilon_10p')
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_10p')
 
-    # p1 = RandomPlayer()
-    # #p1 = QLearningPlayer()
-    # p2 = QLearningPlayer(q_init=0.0,epsilon=0.2)
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.2)
 
-    # train(train_count,p1,p2,'Random_vs_Bot_epsilon_20p')
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_20p')
 
-    # p1 = RandomPlayer()
-    # #p1 = QLearningPlayer()
-    # p2 = QLearningPlayer(q_init=0.0,epsilon=0.3)
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.3)
 
-    # train(train_count,p1,p2,'Random_vs_Bot_epsilon_30p')
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_30p')
 
 
-    # p1 = RandomPlayer()
-    # #p1 = QLearningPlayer()
-    # p2 = QLearningPlayer(q_init=0.0,epsilon=0.4)
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.4)
 
-    # train(train_count,p1,p2,'Random_vs_Bot_epsilon_40p')
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_40p')
 
-    # p1 = RandomPlayer()
-    # #p1 = QLearningPlayer()
-    # p2 = QLearningPlayer(q_init=0.0,epsilon=0.5)
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.5)
 
-    # train(train_count,p1,p2,'Random_vs_Bot_epsilon_50p')
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_50p')
+
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.6)
+
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_60p')
+
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.7)
+
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_70p')
+
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.8)
+
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_80p')
+
+
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=0.9)
+
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_90p')
+
+    p1 = RandomPlayer()
+    #p1 = QLearningPlayer()
+    p2 = QLearningPlayer(q_init=0.0,alpha=1.0)
+
+    train((lambda player1,player2: Connect4(player1,player2)),train_count,p1,p2,'Random_vs_Bot_alpha_100p')
 
