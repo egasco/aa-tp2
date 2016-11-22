@@ -67,6 +67,13 @@
 \cfoot{\thepage\ / \pageref{LastPage}}
 \renewcommand{\footrulewidth}{0.4pt}
 \renewcommand{\labelitemi}{$\bullet$}
+\newcommand{\myss}[4]{
+    \begin{subfigure}[b,height = 4 cm]{#1\textwidth}
+        \includegraphics[scale=#4]{IMGs/#2}
+        \caption{#3}
+        \label{fig:#2}
+    \end{subfigure}
+}
 \setcounter{section}{-1}
 
 %%caratula
