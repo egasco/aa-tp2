@@ -47,17 +47,15 @@ class Connect4:
                 player.reward(-99, self.board) # score of shame
                 break"""
             
-            # GUARDO MOVIDA
-
-            self.board[new_pos[0]][new_pos[1]] = color
-
             # BLOQUEO
 
+            self.board[new_pos[0]][new_pos[1]] = other_color
             if self.player_wins(other_color,player.last_move):
+                self.board[new_pos[0]][new_pos[1]] = color
                 player.reward(0.5, self.board)
 
             # GANO
-
+            self.board[new_pos[0]][new_pos[1]] = color
             if self.player_wins(color,player.last_move):
                 player.reward(1, self.board)
                 other_player.reward(-1, self.board)
