@@ -1,6 +1,7 @@
 
 \subsection{Hiper-parámetros}
 
+Se experimento con diferentes valores iniciales de Q. Los mejores resultados se obtuvieron utilizando 0 como valor inicial, logrando mayor velocidad en el entrenamiento. En la figura ~\ref{fig:qinit} se muestran tasa de victorias de agentes de QLearning contra agentes random.   
 \begin{figure}[H]
 \begin{center}
 \myss{0.3}{{Random_vs_Bot_q_init_0.0}.pdf}{q\_init=0.0}{0.28}
@@ -23,6 +24,8 @@ En la figura ~\ref{fig:alpha} se compara tasa de victorias para agentes entrenan
 \end{center}
 \end{figure}
 
+Por ultimo experimentamos variando el factor de descuento. Este parámetro controla el peso que tienen los recompensas de estados posteriores. 
+
 
 \subsection{Exploración vs Explotación}
 
@@ -44,3 +47,6 @@ En la figura ~\ref{fig:alpha} se compara tasa de victorias para agentes entrenan
 \label{fig:epsilon2}
 \end{center}
 \end{figure}
+
+
+\subsection{Estrategias de entrenamiento}
