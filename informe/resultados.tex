@@ -1,7 +1,8 @@
 
 \subsection{Hiper-parámetros}
 
-Se experimento con diferentes valores iniciales de Q. Los mejores resultados se obtuvieron utilizando 0 como valor inicial, logrando mayor velocidad en el entrenamiento. En la figura ~\ref{fig:qinit} se muestran tasa de victorias de agentes de QLearning contra agentes random para los diferentes valores iniciales de Q.   
+Se experimento con diferentes valores iniciales de Q. Los mejores resultados se obtuvieron utilizando 0 como valor inicial, logrando mayor velocidad en el entrenamiento. En la figura ~\ref{fig:qinit} se muestran tasa de victorias de agentes de QLearning contra agentes random para los diferentes valores iniciales de Q. Pasando los 200000 partidos de entrenamiento no se nota mejora los agentes que utilizan 0 como valor inicial. Y para diferentes valores de Q eventualmente convergen a la misma tasa de victorias del agente inicializado a 0. 
+
 \begin{figure}[H]
 \begin{center}
 \myss{0.3}{{Random_vs_Bot_q_init_0.0}.pdf}{q\_init=0.0}{0.28}
@@ -58,3 +59,9 @@ Por ultimo experimentamos variando el factor de descuento($\gamma$). Este parám
 
 
 \subsection{Estrategias de entrenamiento}
+
+También experimentamos con diferentes combinaciones de entrenamiento para intentar mejorar la performance del agente los agentes. Enfrentamos agentes entrenados contra un agente random contra agentes entrenados entre Agentes Qlearning y por ultimo se probo entrenar primero contra random y después contra Agente de Qlearning. No se observaron mejoras modificando el entrenamiento y en promedio los agentes sin importar como se entrasen ganaban mitad de partidas cada uno.
+
+
+
+
