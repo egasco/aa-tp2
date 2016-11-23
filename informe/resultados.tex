@@ -12,6 +12,19 @@
 \end{figure}
 
 
+En la figura ~\ref{fig:alpha} se compara tasa de victorias para agentes entrenando con diferentes valores para la tasa de aprendizaje. Al utilizar el valor 1.0, que desprecia el conocimiento previo para dicho estado el agente logra una tasa de victorias similar un un agente random. Para todos los valores inferiores a 1.0 se logran una perfomance similar entrenando contra un agente random. La figura ~\ref{fig:QL_alpha_30p_vs_QL_alpha_70p} muestra resultados de 2 agentes que implementan con Qlearning con diferentes tasa de aprendizaje, y en ningún momento uno de los agentes supera significativamente al otro. 
+ 
+\begin{figure}[H]
+\begin{center}
+\myss{0.35}{alpha}{Bots entrenando con diferentes $\alpha$(tasa de aprendizaje) contra Bot random}{0.30}
+\myss{0.35}{QL_alpha_30p_vs_QL_alpha_70p}{Bot $\alpha$=0.3 vs Bot $\alpha$=0.7}{0.30}
+\caption{}
+\label{fig:alphag}
+\end{center}
+\end{figure}
+
+
+\subsection{Exploración vs Explotación}
 
 \begin{figure}[H]
 \begin{center}
@@ -29,16 +42,5 @@
 \myss{0.50}{epsilon.pdf}{}{0.50}
 \caption{Bots entrenando con diferentes epsilon contra Bot random}
 \label{fig:epsilon2}
-\end{center}
-\end{figure}
-
-En la figura ~\ref{fig:alpha} se compara tasa de victorias para agentes entrenando con diferentes valores para la tasa de aprendizaje. Al utilizar el valor 1.0, que desprecia el conocimiento previo para dicho estado el agente logra una tasa de victorias similar un un agente random. Para todos los valores inferiores a 1.0 se logran una perfomance similar entrenando contra un agente random. La figura ~\ref{fig:QL_alpha_30p_vs_QL_alpha_70p} muestra resultados de 2 agentes que implementan con Qlearning con diferentes tasa de aprendizaje, y en ningún momento uno de los agentes supera significativamente al otro. 
- 
-\begin{figure}[H]
-\begin{center}
-\myss{0.35}{alpha}{Bots entrenando con diferentes $\alpha$(tasa de aprendizaje) contra Bot random}{0.30}
-\myss{0.35}{QL_alpha_30p_vs_QL_alpha_70p}{Bot $\alpha$=0.3 vs Bot $\alpha$=0.7}{0.30}
-\caption{}
-\label{fig:alphag}
 \end{center}
 \end{figure}
