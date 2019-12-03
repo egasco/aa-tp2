@@ -1,8 +1,6 @@
-# aa-tp2
-TP2 Aprendizaje Automatico
+# Q-Learning: TP2 de Aprendizaje Automatico
 
-
-## Para poner en el informe:
+## Temas del Informe:
 
 ¿Qué es aprender?, ¿Aprende? ¿No aprende? ¿A qué velocidad lo hace? ¿Generaliza para cualquier escenario?, etc.
 
