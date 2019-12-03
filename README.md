@@ -2,7 +2,7 @@
 TP2 Aprendizaje Automatico
 
 
-*Para poner en el informe:
+## Para poner en el informe:
 
 ¿Qué es aprender?, ¿Aprende? ¿No aprende? ¿A qué velocidad lo hace? ¿Generaliza para cualquier escenario?, etc.
 
